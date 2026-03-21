@@ -1,191 +1,120 @@
 package chrisrca.ancientanimations.config;
 
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.option.GameOptionsScreen;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.EntryListWidget;
+import net.minecraft.client.gui.widget.OptionListWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.text.Text;
 
-public class ConfigScreen extends Screen {
-    public Config config;
+public class ConfigScreen extends GameOptionsScreen {
 
-    private SliderWidget transXSlider, transYSlider, transZSlider;
-    private SliderWidget rotXSlider, rotYSlider, rotZSlider, rotY2Slider;
-
-    private SliderWidget itemPosXSlider, itemPosYSlider, itemPosZSlider;
-    private SliderWidget itemRotXSlider, itemRotYSlider, itemRotZSlider;
-    private SliderWidget itemScaleSlider;
-
-    public ConfigScreen(Config config) {
-        super(Text.empty());
+    public ConfigScreen(Screen parent, Config config) {
+        super(parent, MinecraftClient.getInstance().options, Text.literal("Ancient Animations"));
         this.config = config;
     }
 
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        assert client != null;
+    public ConfigScreen(Config config) {
+        this(null, config);
+    }
 
-        String swingTitle = "Swing Animation";
-        context.drawText(client.textRenderer, swingTitle,
-                width / 4 - client.textRenderer.getWidth(swingTitle) / 2, 8, -1, false);
+    private final Config config;
 
-        String itemTitle = "Item Transform";
-        context.drawText(client.textRenderer, itemTitle,
-                width * 3 / 4 - client.textRenderer.getWidth(itemTitle) / 2, 8, -1, false);
+    private static SliderWidget makeSlider(String label, double value, double min, double max, SliderConsumer consumer) {
+        double normalised = (value - min) / (max - min);
+        return new SliderWidget(0, 0, 150, 20, Text.literal(label), normalised) {
+            @Override
+            protected void updateMessage() {
+                double real = this.value * (max - min) + min;
+                setMessage(Text.literal(label + String.format(
+                        (max - min) > 10 ? " %.1f°" : " %.3f", real)));
+            }
+            @Override
+            protected void applyValue() {
+                consumer.accept(this.value * (max - min) + min);
+            }
+            { updateMessage(); }
+        };
+    }
+
+    @FunctionalInterface
+    interface SliderConsumer { void accept(double v); }
+
+    private void resetSwing() {
+        Config defaults = new Config();
+        config.swingTransX = defaults.swingTransX;
+        config.swingTransY = defaults.swingTransY;
+        config.swingTransZ = defaults.swingTransZ;
+        config.swingRotX   = defaults.swingRotX;
+        config.swingRotY   = defaults.swingRotY;
+        config.swingRotZ   = defaults.swingRotZ;
+        config.swingRotY2  = defaults.swingRotY2;
+        rebuildBody();
+    }
+
+    private void resetItem() {
+        Config defaults = new Config();
+        config.itemPosX  = defaults.itemPosX;
+        config.itemPosY  = defaults.itemPosY;
+        config.itemPosZ  = defaults.itemPosZ;
+        config.itemRotX  = defaults.itemRotX;
+        config.itemRotY  = defaults.itemRotY;
+        config.itemRotZ  = defaults.itemRotZ;
+        config.itemScale = defaults.itemScale;
+        rebuildBody();
+    }
+
+    private void rebuildBody() {
+        double scrollAmount = ((EntryListWidget<?>) body).getScrollY();
+        remove(body);
+        body = new OptionListWidget(client, this.width, this);
+        addOptions();
+        body.position(this.width, this.layout);
+        addDrawableChild(body);
+        ((EntryListWidget<?>) body).setScrollY(scrollAmount);
     }
 
     @Override
-    protected void init() {
-        int sliderW = 200;
-        int startY = 30;
-        int spacing = 25;
+    protected void addOptions() {
+        body.addHeader(Text.literal("Swing Animation"));
 
-        int lx = width / 4 - sliderW / 2;
+        body.addWidgetEntry(
+                makeSlider("Trans X", config.swingTransX, -1, 1, v -> config.swingTransX = v),
+                makeSlider("Trans Y", config.swingTransY, -1, 1, v -> config.swingTransY = v)
+        );
+        body.addWidgetEntry(
+                makeSlider("Trans Z", config.swingTransZ, -1, 1, v -> config.swingTransZ = v),
+                makeSlider("Rot X",   config.swingRotX,   -180, 180, v -> config.swingRotX = v)
+        );
+        body.addWidgetEntry(
+                makeSlider("Rot Y",  config.swingRotY,  -180, 180, v -> config.swingRotY  = v),
+                makeSlider("Rot Z",  config.swingRotZ,  -180, 180, v -> config.swingRotZ  = v)
+        );
+        body.addWidgetEntry(
+                makeSlider("Rot Y2", config.swingRotY2, -180, 180, v -> config.swingRotY2 = v),
+                ButtonWidget.builder(Text.literal("Reset Swing"), button -> resetSwing()).build()
+        );
 
-        transXSlider = new SliderWidget(lx, startY, sliderW, 20,
-                Text.literal("Trans X: "), (config.swingTransX + 1.0) / 2.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Trans X: " + String.format("%.3f", value * 2.0 - 1.0)));
-            }
-            @Override protected void applyValue() { config.swingTransX = value * 2.0 - 1.0; }
-            { updateMessage(); }
-        };
+        body.addHeader(Text.literal("Item Transform"));
 
-        transYSlider = new SliderWidget(lx, startY + spacing, sliderW, 20,
-                Text.literal("Trans Y: "), (config.swingTransY + 1.0) / 2.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Trans Y: " + String.format("%.3f", value * 2.0 - 1.0)));
-            }
-            @Override protected void applyValue() { config.swingTransY = value * 2.0 - 1.0; }
-            { updateMessage(); }
-        };
-
-        transZSlider = new SliderWidget(lx, startY + spacing * 2, sliderW, 20,
-                Text.literal("Trans Z: "), (config.swingTransZ + 1.0) / 2.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Trans Z: " + String.format("%.3f", value * 2.0 - 1.0)));
-            }
-            @Override protected void applyValue() { config.swingTransZ = value * 2.0 - 1.0; }
-            { updateMessage(); }
-        };
-
-        rotXSlider = new SliderWidget(lx, startY + spacing * 3, sliderW, 20,
-                Text.literal("Rot X: "), (config.swingRotX + 180.0) / 360.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Rot X: " + String.format("%.1f", value * 360.0 - 180.0) + "°"));
-            }
-            @Override protected void applyValue() { config.swingRotX = value * 360.0 - 180.0; }
-            { updateMessage(); }
-        };
-
-        rotYSlider = new SliderWidget(lx, startY + spacing * 4, sliderW, 20,
-                Text.literal("Rot Y: "), (config.swingRotY + 180.0) / 360.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Rot Y: " + String.format("%.1f", value * 360.0 - 180.0) + "°"));
-            }
-            @Override protected void applyValue() { config.swingRotY = value * 360.0 - 180.0; }
-            { updateMessage(); }
-        };
-
-        rotZSlider = new SliderWidget(lx, startY + spacing * 5, sliderW, 20,
-                Text.literal("Rot Z: "), (config.swingRotZ + 180.0) / 360.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Rot Z: " + String.format("%.1f", value * 360.0 - 180.0) + "°"));
-            }
-            @Override protected void applyValue() { config.swingRotZ = value * 360.0 - 180.0; }
-            { updateMessage(); }
-        };
-
-        rotY2Slider = new SliderWidget(lx, startY + spacing * 6, sliderW, 20,
-                Text.literal("Rot Y2: "), (config.swingRotY2 + 180.0) / 360.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Rot Y2: " + String.format("%.1f", value * 360.0 - 180.0) + "°"));
-            }
-            @Override protected void applyValue() { config.swingRotY2 = value * 360.0 - 180.0; }
-            { updateMessage(); }
-        };
-
-        int rx = width * 3 / 4 - sliderW / 2;
-
-        itemPosXSlider = new SliderWidget(rx, startY, sliderW, 20,
-                Text.literal("Pos X: "), (config.itemPosX + 1.0) / 2.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Pos X: " + String.format("%.3f", value * 2.0 - 1.0)));
-            }
-            @Override protected void applyValue() { config.itemPosX = value * 2.0 - 1.0; }
-            { updateMessage(); }
-        };
-
-        itemPosYSlider = new SliderWidget(rx, startY + spacing, sliderW, 20,
-                Text.literal("Pos Y: "), (config.itemPosY + 1.0) / 2.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Pos Y: " + String.format("%.3f", value * 2.0 - 1.0)));
-            }
-            @Override protected void applyValue() { config.itemPosY = value * 2.0 - 1.0; }
-            { updateMessage(); }
-        };
-
-        itemPosZSlider = new SliderWidget(rx, startY + spacing * 2, sliderW, 20,
-                Text.literal("Pos Z: "), (config.itemPosZ + 1.0) / 2.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Pos Z: " + String.format("%.3f", value * 2.0 - 1.0)));
-            }
-            @Override protected void applyValue() { config.itemPosZ = value * 2.0 - 1.0; }
-            { updateMessage(); }
-        };
-
-        itemRotXSlider = new SliderWidget(rx, startY + spacing * 3, sliderW, 20,
-                Text.literal("Item Rot X: "), (config.itemRotX + 180.0) / 360.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Item Rot X: " + String.format("%.1f", value * 360.0 - 180.0) + "°"));
-            }
-            @Override protected void applyValue() { config.itemRotX = value * 360.0 - 180.0; }
-            { updateMessage(); }
-        };
-
-        itemRotYSlider = new SliderWidget(rx, startY + spacing * 4, sliderW, 20,
-                Text.literal("Item Rot Y: "), (config.itemRotY + 180.0) / 360.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Item Rot Y: " + String.format("%.1f", value * 360.0 - 180.0) + "°"));
-            }
-            @Override protected void applyValue() { config.itemRotY = value * 360.0 - 180.0; }
-            { updateMessage(); }
-        };
-
-        itemRotZSlider = new SliderWidget(rx, startY + spacing * 5, sliderW, 20,
-                Text.literal("Item Rot Z: "), (config.itemRotZ + 180.0) / 360.0) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Item Rot Z: " + String.format("%.1f", value * 360.0 - 180.0) + "°"));
-            }
-            @Override protected void applyValue() { config.itemRotZ = value * 360.0 - 180.0; }
-            { updateMessage(); }
-        };
-
-        // Scale: range 0.1 to 3.0
-        itemScaleSlider = new SliderWidget(rx, startY + spacing * 6, sliderW, 20,
-                Text.literal("Scale: "), (config.itemScale - 0.1) / 2.9) {
-            @Override protected void updateMessage() {
-                setMessage(Text.literal("Scale: " + String.format("%.2f", value * 2.9 + 0.1)));
-            }
-            @Override protected void applyValue() { config.itemScale = value * 2.9 + 0.1; }
-            { updateMessage(); }
-        };
-
-        this.addDrawableChild(transXSlider);
-        this.addDrawableChild(transYSlider);
-        this.addDrawableChild(transZSlider);
-        this.addDrawableChild(rotXSlider);
-        this.addDrawableChild(rotYSlider);
-        this.addDrawableChild(rotZSlider);
-        this.addDrawableChild(rotY2Slider);
-
-        this.addDrawableChild(itemPosXSlider);
-        this.addDrawableChild(itemPosYSlider);
-        this.addDrawableChild(itemPosZSlider);
-        this.addDrawableChild(itemRotXSlider);
-        this.addDrawableChild(itemRotYSlider);
-        this.addDrawableChild(itemRotZSlider);
-        this.addDrawableChild(itemScaleSlider);
+        body.addWidgetEntry(
+                makeSlider("Pos X", config.itemPosX, -1, 1, v -> config.itemPosX = v),
+                makeSlider("Pos Y", config.itemPosY, -1, 1, v -> config.itemPosY = v)
+        );
+        body.addWidgetEntry(
+                makeSlider("Pos Z",      config.itemPosZ,  -1,   1,   v -> config.itemPosZ  = v),
+                makeSlider("Item Rot X", config.itemRotX, -180, 180,  v -> config.itemRotX  = v)
+        );
+        body.addWidgetEntry(
+                makeSlider("Item Rot Y", config.itemRotY, -180, 180, v -> config.itemRotY = v),
+                makeSlider("Item Rot Z", config.itemRotZ, -180, 180, v -> config.itemRotZ = v)
+        );
+        body.addWidgetEntry(
+                makeSlider("Scale", config.itemScale, 0.1, 3.0, v -> config.itemScale = v),
+                ButtonWidget.builder(Text.literal("Reset Item"), button -> resetItem()).build()
+        );
     }
 
     @Override

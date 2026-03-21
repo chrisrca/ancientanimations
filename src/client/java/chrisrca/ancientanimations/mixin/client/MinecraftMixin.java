@@ -4,6 +4,8 @@ import chrisrca.ancientanimations.AncientAnimationsClient;
 import chrisrca.ancientanimations.config.Config;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -51,12 +53,12 @@ public abstract class MinecraftMixin {
                 AncientAnimationsClient.trigger17Swing();
                 hasSwungThisHold = true;
             } else {
-                if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != net.minecraft.util.hit.HitResult.Type.BLOCK) {
+                if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != HitResult.Type.BLOCK) {
                     ci.cancel();
                     return;
                 }
                 AncientAnimationsClient.trigger17Swing();
-                player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+                player.swingHand(Hand.MAIN_HAND);
             }
             ci.cancel();
             return;
@@ -66,32 +68,32 @@ public abstract class MinecraftMixin {
             MinecraftClient mc = MinecraftClient.getInstance();
 
             if (!hasSwungThisHold) {
-                player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+                player.swingHand(Hand.MAIN_HAND);
                 hasSwungThisHold = true;
             } else {
-                if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != net.minecraft.util.hit.HitResult.Type.BLOCK) {
+                if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != HitResult.Type.BLOCK) {
                     ci.cancel();
                     return;
                 }
-                player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+                player.swingHand(Hand.MAIN_HAND);
             }
             ci.cancel();
         }
 
         if (AncientAnimationsClient.isDrawingBow(player.getMainHandStack().getItem(), player.getMainHandStack()) && player.isUsingItem()) {
-        MinecraftClient mc = MinecraftClient.getInstance();
+            MinecraftClient mc = MinecraftClient.getInstance();
 
-        if (!hasSwungThisHold) {
-            player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
-            hasSwungThisHold = true;
-        } else {
-            if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != net.minecraft.util.hit.HitResult.Type.BLOCK) {
-                ci.cancel();
-                return;
+            if (!hasSwungThisHold) {
+                player.swingHand(Hand.MAIN_HAND);
+                hasSwungThisHold = true;
+            } else {
+                if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != HitResult.Type.BLOCK) {
+                    ci.cancel();
+                    return;
+                }
+                player.swingHand(Hand.MAIN_HAND);
             }
-            player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+            ci.cancel();
         }
-        ci.cancel();
-    }
     }
 }

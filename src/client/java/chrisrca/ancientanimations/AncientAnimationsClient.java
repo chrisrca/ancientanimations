@@ -3,6 +3,8 @@ package chrisrca.ancientanimations;
 import chrisrca.ancientanimations.config.Config;
 import chrisrca.ancientanimations.config.ConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
@@ -12,6 +14,7 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.consume.UseAction;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
@@ -65,15 +68,13 @@ public class AncientAnimationsClient implements ClientModInitializer {
     }
 
     public static boolean isEatingOrDrinking(Item item, ItemStack stack) {
-        net.minecraft.item.consume.UseAction action = item.getUseAction(stack);
-        return action == net.minecraft.item.consume.UseAction.EAT
-                || action == net.minecraft.item.consume.UseAction.DRINK;
+        UseAction action = item.getUseAction(stack);
+        return action == UseAction.EAT || action == UseAction.DRINK;
     }
 
     public static boolean isDrawingBow(Item item, ItemStack stack) {
-        net.minecraft.item.consume.UseAction action = item.getUseAction(stack);
-        return action == net.minecraft.item.consume.UseAction.BOW
-            || action == net.minecraft.item.consume.UseAction.CROSSBOW;
+        UseAction action = item.getUseAction(stack);
+        return action == UseAction.BOW || action == UseAction.CROSSBOW;
     }
 
     public static boolean swing17InProgress() {
@@ -132,6 +133,17 @@ public class AncientAnimationsClient implements ClientModInitializer {
                 CATEGORY
         ));
 
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            var command = ClientCommandManager.literal("aa")
+                    .executes(context -> {
+                        MinecraftClient mc = MinecraftClient.getInstance();
+                        mc.execute(() -> mc.setScreen(new ConfigScreen(mc.currentScreen, config)));
+                        return 1;
+                    });
+            dispatcher.register(command);
+            dispatcher.register(ClientCommandManager.literal("ancientanimations").redirect(command.build()));
+        });
+
         LOGGER.info("AncientAnimations starting!");
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -149,7 +161,7 @@ public class AncientAnimationsClient implements ClientModInitializer {
             swing17 = (float) swing17Int / (float) max;
 
             while (bind.wasPressed()) {
-                client.setScreen(new ConfigScreen(config));
+                client.setScreen(new ConfigScreen(client.currentScreen, config));
             }
         });
     }
