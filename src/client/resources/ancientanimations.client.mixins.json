@@ -6,8 +6,7 @@
     "ItemMixin",
     "LivingEntityMixin",
     "MinecraftMixin",
-    "HeldItemRendererMixin",
-    "ClientPlayerEntityMixin"
+    "HeldItemRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

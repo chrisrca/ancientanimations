@@ -109,4 +109,36 @@ public class HeldItemRendererMixin {
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(arc * -20.0f));
         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(arc * -80.0f));
     }
+
+    @Inject(method = "renderFirstPersonItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;renderItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/item/ItemDisplayContext;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;I)V", ordinal = 1))
+    private void applyBowPunchAnimation(
+            AbstractClientPlayerEntity player,
+            float tickDelta,
+            float pitch,
+            Hand hand,
+            float swingProgress,
+            ItemStack item,
+            float equipProgress,
+            MatrixStack matrices,
+            OrderedRenderCommandQueue queue,
+            int light,
+            CallbackInfo ci
+    ) {
+        if (!AncientAnimationsClient.isDrawingBow(item.getItem(), item)) return;
+        if (!player.isUsingItem()) return;
+
+        float swing = player.getHandSwingProgress(tickDelta);
+        if (swing <= 0f) return;
+
+        float tx = -0.4F * MathHelper.sin((float) Math.sqrt(swing) * (float) Math.PI);
+        float ty =  0.2F * MathHelper.sin((float) Math.sqrt(swing) * (float) Math.PI * 2.0F);
+        float tz = -0.2F * MathHelper.sin(swing * (float) Math.PI);
+        matrices.translate(tx, ty, tz);
+
+        float f  = MathHelper.sin(swing * swing * (float) Math.PI);
+        float f1 = MathHelper.sin((float) Math.sqrt(swing) * (float) Math.PI);
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(f  * 20.0F));
+        matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(f1 * 20.0F));
+        matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(f1 * -80.0F));
+    }
 }

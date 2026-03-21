@@ -62,8 +62,7 @@ public abstract class MinecraftMixin {
             return;
         }
 
-        if (AncientAnimationsClient.isEatingOrDrinking(player.getMainHandStack().getItem(), player.getMainHandStack())
-                && player.isUsingItem()) {
+        if (AncientAnimationsClient.isEatingOrDrinking(player.getMainHandStack().getItem(), player.getMainHandStack()) && player.isUsingItem()) {
             MinecraftClient mc = MinecraftClient.getInstance();
 
             if (!hasSwungThisHold) {
@@ -78,5 +77,21 @@ public abstract class MinecraftMixin {
             }
             ci.cancel();
         }
+
+        if (AncientAnimationsClient.isDrawingBow(player.getMainHandStack().getItem(), player.getMainHandStack()) && player.isUsingItem()) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+
+        if (!hasSwungThisHold) {
+            player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+            hasSwungThisHold = true;
+        } else {
+            if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != net.minecraft.util.hit.HitResult.Type.BLOCK) {
+                ci.cancel();
+                return;
+            }
+            player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+        }
+        ci.cancel();
+    }
     }
 }

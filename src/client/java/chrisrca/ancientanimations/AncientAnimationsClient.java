@@ -70,6 +70,12 @@ public class AncientAnimationsClient implements ClientModInitializer {
                 || action == net.minecraft.item.consume.UseAction.DRINK;
     }
 
+    public static boolean isDrawingBow(Item item, ItemStack stack) {
+        net.minecraft.item.consume.UseAction action = item.getUseAction(stack);
+        return action == net.minecraft.item.consume.UseAction.BOW
+            || action == net.minecraft.item.consume.UseAction.CROSSBOW;
+    }
+
     public static boolean swing17InProgress() {
         return swing17InProgress;
     }
