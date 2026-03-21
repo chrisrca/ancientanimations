@@ -83,4 +83,30 @@ public class HeldItemRendererMixin {
         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(arc * cfg.swingRotZ)));
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(arc * cfg.swingRotY2)));
     }
+
+    @Inject(method = "renderFirstPersonItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;renderItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/item/ItemDisplayContext;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;I)V", ordinal = 1))
+    private void applyEatPunchAnimation(
+            AbstractClientPlayerEntity player,
+            float tickDelta,
+            float pitch,
+            Hand hand,
+            float swingProgress,
+            ItemStack item,
+            float equipProgress,
+            MatrixStack matrices,
+            OrderedRenderCommandQueue queue,
+            int light,
+            CallbackInfo ci
+    ) {
+        if (!AncientAnimationsClient.isEatingOrDrinking(item.getItem(), item)) return;
+        if (!player.isUsingItem()) return;
+        if (player.getHandSwingProgress(tickDelta) <= 0f) return;
+
+        float swing = player.getHandSwingProgress(tickDelta);
+        float arc = MathHelper.sin((float) Math.sqrt(swing) * (float) Math.PI);
+
+        matrices.translate(arc * -0.4f, 0f, 0f);
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(arc * -20.0f));
+        matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(arc * -80.0f));
+    }
 }

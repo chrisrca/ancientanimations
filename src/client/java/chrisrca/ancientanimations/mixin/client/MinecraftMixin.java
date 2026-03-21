@@ -41,22 +41,42 @@ public abstract class MinecraftMixin {
     @Inject(method = "handleBlockBreaking", at = @At("HEAD"), cancellable = true)
     public void onHandleBlockBreaking(boolean breaking, CallbackInfo ci) {
         if (player == null || !breaking) return;
-        if (!AncientAnimationsClient.isSword(player.getMainHandStack().getItem())) return;
-        if (!player.isUsingItem()) return;
 
-        MinecraftClient mc = MinecraftClient.getInstance();
+        if (AncientAnimationsClient.isSword(player.getMainHandStack().getItem())) {
+            if (!player.isUsingItem()) return;
 
-        if (!hasSwungThisHold) {
-            AncientAnimationsClient.trigger17Swing();
-            hasSwungThisHold = true;
-        } else {
-            if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != net.minecraft.util.hit.HitResult.Type.BLOCK) {
-                ci.cancel();
-                return;
+            MinecraftClient mc = MinecraftClient.getInstance();
+
+            if (!hasSwungThisHold) {
+                AncientAnimationsClient.trigger17Swing();
+                hasSwungThisHold = true;
+            } else {
+                if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != net.minecraft.util.hit.HitResult.Type.BLOCK) {
+                    ci.cancel();
+                    return;
+                }
+                AncientAnimationsClient.trigger17Swing();
+                player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
             }
-            AncientAnimationsClient.trigger17Swing();
-            player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+            ci.cancel();
+            return;
         }
-        ci.cancel();
+
+        if (AncientAnimationsClient.isEatingOrDrinking(player.getMainHandStack().getItem(), player.getMainHandStack())
+                && player.isUsingItem()) {
+            MinecraftClient mc = MinecraftClient.getInstance();
+
+            if (!hasSwungThisHold) {
+                player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+                hasSwungThisHold = true;
+            } else {
+                if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != net.minecraft.util.hit.HitResult.Type.BLOCK) {
+                    ci.cancel();
+                    return;
+                }
+                player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+            }
+            ci.cancel();
+        }
     }
 }

@@ -64,6 +64,12 @@ public class AncientAnimationsClient implements ClientModInitializer {
                 || item == Items.TRIDENT;
     }
 
+    public static boolean isEatingOrDrinking(Item item, ItemStack stack) {
+        net.minecraft.item.consume.UseAction action = item.getUseAction(stack);
+        return action == net.minecraft.item.consume.UseAction.EAT
+                || action == net.minecraft.item.consume.UseAction.DRINK;
+    }
+
     public static boolean swing17InProgress() {
         return swing17InProgress;
     }
