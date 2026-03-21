@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "chrisrca.ancientanimations.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ItemMixin",
+    "LivingEntityMixin",
+    "MinecraftMixin",
+    "HeldItemRendererMixin",
+    "ClientPlayerEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

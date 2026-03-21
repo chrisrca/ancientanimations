@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "ancientanimations",
+  "version": "${version}",
+  "name": "ancientanimations",
+  "description": "Allows you to blockhit in modern minecraft!",
+  "authors": [ "chrisrca" ],
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "chrisrca.ancientanimations.AncientAnimationsClient"
+    ]
+  },
+  "mixins": [
+    "ancientanimations.client.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.17.3",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
