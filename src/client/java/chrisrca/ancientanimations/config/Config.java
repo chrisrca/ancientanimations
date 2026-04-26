@@ -25,6 +25,9 @@ public class Config {
     public double itemRotZ = 0.0;
     public double itemScale = 1.0;
 
+    // General
+    public double swingSpeedMultiplier = 1.0;
+
     public static Config load() throws IOException {
         var configFile = FabricLoader.getInstance().getConfigDir().resolve("ancientanimations.json");
         var gson = new Gson();
