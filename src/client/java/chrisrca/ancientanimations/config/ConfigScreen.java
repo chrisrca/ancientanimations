@@ -66,6 +66,12 @@ public class ConfigScreen extends GameOptionsScreen {
         rebuildBody();
     }
 
+    private void resetGeneral() {
+        Config defaults = new Config();
+        config.swingSpeedMultiplier = defaults.swingSpeedMultiplier;
+        rebuildBody();
+    }
+
     private void rebuildBody() {
         double scrollAmount = ((EntryListWidget<?>) body).getScrollY();
         remove(body);
@@ -78,7 +84,10 @@ public class ConfigScreen extends GameOptionsScreen {
 
     @Override
     protected void addOptions() {
-        body.addHeader(Text.literal("Swing Animation"));
+        body.addWidgetEntry(
+                new net.minecraft.client.gui.widget.TextWidget(Text.literal("Swing Animation"), client.textRenderer),
+                null
+        );
 
         body.addWidgetEntry(
                 makeSlider("Trans X", config.swingTransX, -1, 1, v -> config.swingTransX = v),
@@ -97,7 +106,10 @@ public class ConfigScreen extends GameOptionsScreen {
                 ButtonWidget.builder(Text.literal("Reset Swing"), button -> resetSwing()).build()
         );
 
-        body.addHeader(Text.literal("Item Transform"));
+        body.addWidgetEntry(
+                new net.minecraft.client.gui.widget.TextWidget(Text.literal("Item Transform"), client.textRenderer),
+                null
+        );
 
         body.addWidgetEntry(
                 makeSlider("Pos X", config.itemPosX, -1, 1, v -> config.itemPosX = v),
@@ -114,6 +126,16 @@ public class ConfigScreen extends GameOptionsScreen {
         body.addWidgetEntry(
                 makeSlider("Scale", config.itemScale, 0.1, 3.0, v -> config.itemScale = v),
                 ButtonWidget.builder(Text.literal("Reset Item"), button -> resetItem()).build()
+        );
+
+        body.addWidgetEntry(
+                new net.minecraft.client.gui.widget.TextWidget(Text.literal("General"), client.textRenderer),
+                null
+        );
+
+        body.addWidgetEntry(
+                makeSlider("Swing Speed", config.swingSpeedMultiplier, 0.1, 5.0, v -> config.swingSpeedMultiplier = v),
+                ButtonWidget.builder(Text.literal("Reset General"), button -> resetGeneral()).build()
         );
     }
 

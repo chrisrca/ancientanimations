@@ -40,4 +40,15 @@ public abstract class LivingEntityMixin extends Entity {
             cir.setReturnValue(true);
         }
     }
+
+    @Inject(at = @At("RETURN"), method = "getHandSwingDuration", cancellable = true)
+    public void onGetHandSwingDuration(CallbackInfoReturnable<Integer> cir) {
+        AncientAnimationsClient instance = AncientAnimationsClient.getInstance();
+        if (instance == null || instance.config == null) return;
+        double mult = instance.config.swingSpeedMultiplier;
+        if (mult == 1.0) return;
+        int original = cir.getReturnValue();
+        int modified = (int) Math.max(1, Math.round(original * mult));
+        cir.setReturnValue(modified);
+    }
 }
