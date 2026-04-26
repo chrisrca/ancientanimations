@@ -5,6 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,8 +25,30 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Inject(at = @At("HEAD"), method = "isBlocking", cancellable = true)
     public void makeFakeBlockingOnSword(CallbackInfoReturnable<Boolean> cir) {
-        if (AncientAnimationsClient.isSword(this.activeItemStack.getItem()) && this.isUsingItem()) {
+        if (!(((Object) this) instanceof LivingEntity living)) return;
+
+        ItemStack mainHand = living.getMainHandStack();
+        ItemStack offHand  = living.getOffHandStack();
+
+        boolean activeIsSword = AncientAnimationsClient.isSword(this.activeItemStack.getItem());
+
+        // If either hand holds a shield, don't trigger animation
+        boolean shieldPresent = mainHand.isOf(Items.SHIELD) || offHand.isOf(Items.SHIELD);
+        if (shieldPresent) return;
+
+        if (activeIsSword && this.isUsingItem()) {
             cir.setReturnValue(true);
         }
+    }
+
+    @Inject(at = @At("RETURN"), method = "getHandSwingDuration", cancellable = true)
+    public void onGetHandSwingDuration(CallbackInfoReturnable<Integer> cir) {
+        AncientAnimationsClient instance = AncientAnimationsClient.getInstance();
+        if (instance == null || instance.config == null) return;
+        double mult = instance.config.swingSpeedMultiplier;
+        if (mult == 1.0) return;
+        int original = cir.getReturnValue();
+        int modified = (int) Math.max(1, Math.round(original * mult));
+        cir.setReturnValue(modified);
     }
 }
